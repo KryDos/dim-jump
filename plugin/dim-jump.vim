@@ -63,6 +63,17 @@ function s:prog() abort
   endif
 endfunction
 
+let s:transformedFiletype = []
+let g:transformFiletypeMap = get(g:, 'transformFiletypeMap', {})
+function s:transformFiletype() abort
+  if has_key(g:transformFiletypeMap,&ft)
+    let s:transformedFiletype = g:transformFiletypeMap[&ft]
+    return
+  endif
+  let s:transformedFiletype = &ft
+endfunction
+
+
 let s:timeout = executable('timeout') ? 'timeout 5' : executable('gtimeout') ? 'gtimeout 5' : ''
 let s:f = fnamemodify(expand('<sfile>:p:h:h'),':p').'jump-extern-defs.json'
 
@@ -129,8 +140,8 @@ let s:transforms = {
       \ 'ruby': 'substitute(JJJ,"^:","","")'
       \ }
 function s:prune(kw) abort
-  if has_key(s:transforms,&ft)
-    return eval(substitute(s:transforms[&ft],'\CJJJ',string(a:kw),'g'))
+  if has_key(s:transforms,s:transformedFiletype)
+    return eval(substitute(s:transforms[s:transformedFiletype],'\CJJJ',string(a:kw),'g'))
   endif
   return a:kw
 endfunction
@@ -184,12 +195,13 @@ function s:funcsort(a,b) abort
 endfunction
 
 function s:GotoDefCword() abort
+  call s:transformFiletype()
   call s:prog()
   let kw = s:prune(expand('<cword>'))
   if kw isnot ''
     if !exists('b:dim_jump_lang')
       let b:dim_jump_lang = filter(deepcopy(s:loaddefs(),1),
-            \ 'v:val.language ==? &ft && count(v:val.supports, b:preferred_searcher)')
+            \ 'v:val.language ==? s:transformedFiletype && count(v:val.supports, b:preferred_searcher)')
     endif
     call s:Grep(kw)
   endif
