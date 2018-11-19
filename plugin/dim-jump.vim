@@ -1,6 +1,14 @@
 if exists('g:loaded_dimjump')
   finish
 endif
+if !exists("g:os")
+  if has("win64") || has("win32") || has("win16")
+    let g:os = "Windows"
+  else
+    let g:os = substitute(system('uname'), '\n', '', '')
+  endif
+endif
+
 let g:loaded_dimjump = 1
 
 let s:langmap = [
@@ -66,12 +74,22 @@ function s:wordpat(token,cmd) abort
 endfunction
 
 let s:sed = fnamemodify(expand('<sfile>:p:h:h'),':p').'parse.sed'
+let s:sedCommand = 'sed'
 function s:loaddefs() abort
+  " we have to use gnu-sed 
+  " in case we are on macos
+  if g:os == 'Darwin'
+    if !executable('gsed')
+      echoerr "Make sure gnu-sed is installed"
+      return
+    endif
+    let s:sedCommand = 'gsed'
+  endif
   if !exists('s:defs')
     if !filereadable(s:f)
       call writefile(systemlist(s:jn('curl -s',
             \ 'https://raw.githubusercontent.com/jacktasia/dumb-jump/master/dumb-jump.el',
-            \ '|','sed -n -f',s:sed)), s:f)
+            \ '|',s:sedCommand .' -n -f',s:sed)), s:f)
     endif
     let raw = join(readfile(s:f))
     sandbox let s:defs = eval('['.raw.']')
