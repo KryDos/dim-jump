@@ -64,7 +64,10 @@ function s:prog() abort
 endfunction
 
 let s:transformedFiletype = []
-let g:transformFiletypeMap = get(g:, 'transformFiletypeMap', {})
+let g:transformFiletypeMap = get(g:, 'transformFiletypeMap', {
+      \ 'javascript.jsx': 'javascript'
+      \}
+      \)
 function s:transformFiletype() abort
   if has_key(g:transformFiletypeMap,&ft)
     let s:transformedFiletype = g:transformFiletypeMap[&ft]
