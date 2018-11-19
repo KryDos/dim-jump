@@ -30,10 +30,10 @@ function s:Fileext(f) abort
   if len(fe) > 1
     return s:jn('find', getcwd(), escape(s:jn(
           \ '( -iname', join(map(copy(fe), 'string("*.".v:val)'), ' -or -iname '),
-          \ ')'), '()'), '-print0 | xargs -0')
+          \ ')'), '()'), '-print0 2>/dev/null | xargs -0')
   endif
   return s:jn('find', getcwd(), '-iname', string('*.'.fnamemodify(a:f,':e')),
-        \ '-print0 | xargs -0')
+        \ '-print0 2>/dev/null | xargs -0')
 endfunction
 
 let [s:ag, s:rg, s:grep] = ['', '', '']
