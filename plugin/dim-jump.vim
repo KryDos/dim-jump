@@ -125,6 +125,7 @@ let s:searchprg  = {
       \ }
 
 function s:Grep(token) abort
+  execute 'ccl'
   let args = map(s:Refine(),'v:val.regex')
   if args == []
     silent! exe "norm! [\<Tab>"
@@ -146,11 +147,10 @@ function s:Grep(token) abort
   let prev = getqflist()
   let res = systemlist(grepcmd)
   if len(res)
-    silent cexpr sort(res,function('s:funcsort'))[0]."\n"
-    if getline('.')[col('.')-1] !~ '\k'
-      call search('\V\<'.escape(a:token,'\').'\>','W')
+    silent cexpr sort(res,function('s:funcsort'))
+    if (len(res) > 1)
+      execute 'copen'
     endif
-    call setqflist(prev,'r')
   endif
   let &errorformat = grepf
 endfunction
